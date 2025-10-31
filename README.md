@@ -1,3 +1,4 @@
+```text
 webapp/
 ├── api/                              # Backend (Flask + SQLAlchemy)
 │   ├── instance/
