@@ -1,0 +1,11 @@
+flask
+flask-bcrypt
+flask-migrate
+flask-restful
+flask-cors
+flask-sqlalchemy
+sqlalchemy-serializer
+sqlalchemy
+
+# Optional: for development and debugging
+python-dotenv
