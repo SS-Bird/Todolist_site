@@ -1,12 +1,13 @@
 // src/api/index.js
-
 const BASE_URL = "/backend";
 
 /**
  * Check current session
  */
 export async function checkSession() {
-  const res = await fetch(`${BASE_URL}/check_session`);
+  const res = await fetch(`${BASE_URL}/check_session`, {
+    credentials: "include"
+  });
   if (!res.ok) throw new Error("Not authenticated");
   return res.json();
 }
@@ -19,6 +20,7 @@ export async function signup(username, password) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
+    credentials: "include"
   });
   if (!res.ok) throw new Error("Signup failed");
   return res.json();
@@ -32,6 +34,7 @@ export async function login(username, password) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
+    credentials: "include"
   });
   if (!res.ok) throw new Error("Login failed");
   return res.json();
@@ -41,7 +44,10 @@ export async function login(username, password) {
  * Logout
  */
 export async function logout() {
-  const res = await fetch(`${BASE_URL}/logout`, { method: "DELETE" });
+  const res = await fetch(`${BASE_URL}/logout`, {
+    method: "DELETE",
+    credentials: "include"
+  });
   if (!res.ok) throw new Error("Logout failed");
   return true;
 }
@@ -50,7 +56,9 @@ export async function logout() {
  * Get all todo lists for current user
  */
 export async function getLists() {
-  const res = await fetch(`${BASE_URL}/lists`);
+  const res = await fetch(`${BASE_URL}/lists`, {
+    credentials: "include"
+  });
   if (!res.ok) throw new Error("Failed to fetch lists");
   return res.json();
 }
@@ -63,6 +71,7 @@ export async function addList(name) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name }),
+    credentials: "include"
   });
   if (!res.ok) throw new Error("Failed to add list");
   return res.json();
@@ -72,7 +81,9 @@ export async function addList(name) {
  * Get tasks for a list
  */
 export async function getTasks(listId) {
-  const res = await fetch(`${BASE_URL}/tasks?list_id=${listId}`);
+  const res = await fetch(`${BASE_URL}/tasks?list_id=${listId}`, {
+    credentials: "include"
+  });
   if (!res.ok) throw new Error("Failed to fetch tasks");
   return res.json();
 }
@@ -85,19 +96,21 @@ export async function addTask(title, listId, parentId = null) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title, list_id: listId, parent_id: parentId }),
+    credentials: "include"
   });
   if (!res.ok) throw new Error("Failed to add task");
   return res.json();
 }
 
 /**
- * Update a task (mark completed)
+ * Update a task (mark completed, rename, etc.)
  */
 export async function updateTask(id, data) {
   const res = await fetch(`${BASE_URL}/tasks/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
+    credentials: "include"
   });
   if (!res.ok) throw new Error("Failed to update task");
   return res.json();
@@ -107,7 +120,10 @@ export async function updateTask(id, data) {
  * Delete a task
  */
 export async function deleteTask(id) {
-  const res = await fetch(`${BASE_URL}/tasks/${id}`, { method: "DELETE" });
+  const res = await fetch(`${BASE_URL}/tasks/${id}`, {
+    method: "DELETE",
+    credentials: "include"
+  });
   if (!res.ok) throw new Error("Failed to delete task");
   return true;
 }

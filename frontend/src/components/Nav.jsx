@@ -1,24 +1,42 @@
-import { NavLink } from "react-router-dom";
+// src/components/Nav.jsx
+import { Link } from "react-router-dom";
 
 function Nav({ user, logout }) {
   return (
-    <section>
-      {user ? (
-        <>
-          <NavLink to={"/"} exact="true">
-            Home
-          </NavLink>
-          <button onClick={() => logout()}>Logout</button>
-        </>
-      ) : (
-        <>
-          <NavLink to={"/signup"}>Sign up</NavLink>
-          <NavLink to={"/login"} exact="true">
-            Login
-          </NavLink>
-        </>
-      )}
-    </section>
+    <header className="bg-gray-100 p-4 flex justify-between items-center">
+      <div className="flex items-center gap-4">
+        <Link to="/" className="font-bold text-lg">
+          Home
+        </Link>
+        {user && (
+          <button
+            onClick={logout}
+            className="bg-red-500 text-white px-3 py-1 rounded"
+          >
+            Logout
+          </button>
+        )}
+      </div>
+
+      <div className="flex items-center gap-4">
+        {!user && (
+          <>
+            <Link
+              to="/login"
+              className="bg-blue-500 text-white px-3 py-1 rounded"
+            >
+              Login
+            </Link>
+            <Link
+              to="/signup"
+              className="bg-green-500 text-white px-3 py-1 rounded"
+            >
+              Sign Up
+            </Link>
+          </>
+        )}
+      </div>
+    </header>
   );
 }
 

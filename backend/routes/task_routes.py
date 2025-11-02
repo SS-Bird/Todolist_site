@@ -1,7 +1,7 @@
+from config import db, api
+from models import User, TodoList, Task
 from flask import request, session
 from flask_restful import Resource
-from config import db, api
-from models import Task, User
 
 def get_current_user():
     user_id = session.get("user_id")
@@ -45,6 +45,19 @@ class TasksResource(Resource):
         db.session.delete(task)
         db.session.commit()
         return {}, 204
+    
+    # routes/task_routes.py
+    class TasksResource(Resource):
+        def get(self):
+            list_id = request.args.get("list_id")
+            user = get_current_user()
+            if not user:
+                return {"error": "Unauthorized"}, 401
+            if not list_id:
+                return {"error": "Missing list_id"}, 400
+
+            tasks = Task.query.filter_by(list_id=list_id).all()
+            return [t.to_dict() for t in tasks], 200
 
 
 # Register route

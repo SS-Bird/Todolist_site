@@ -1,7 +1,7 @@
+from config import db, api
+from models import User, TodoList, Task
 from flask import request, session
 from flask_restful import Resource
-from config import db, api
-from models import TodoList, User
 
 # helper function
 def get_current_user():
@@ -27,6 +27,18 @@ class TodoListsResource(Resource):
         db.session.commit()
         return new_list.to_dict(), 201
 
+class TodoListResource(Resource):
+    def get(self, id):
+        user = get_current_user()
+        if not user:
+            return {"error": "Unauthorized"}, 401
+
+        todo_list = TodoList.query.filter_by(id=id, user_id=user.id).first()
+        if not todo_list:
+            return {"error": "List not found"}, 404
+
+        return todo_list.to_dict(), 200
 
 # Register route
-api.add_resource(TodoListsResource, "/lists")
+api.add_resource(TodoListsResource, "/lists")          # GET all lists, POST new
+api.add_resource(TodoListResource, "/lists/<int:id>")  # GET single list

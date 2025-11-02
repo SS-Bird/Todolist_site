@@ -1,13 +1,19 @@
+from config import db, api
+from models import User, TodoList, Task
 from flask import request, session
 from flask_restful import Resource
-from config import db, api
-from models import User
 
 class Signup(Resource):
     def post(self):
         data = request.get_json()
+        if not data:
+            return {"error": "Missing JSON data"}, 400
         username = data.get("username")
         password = data.get("password")
+        if not username or not password:
+            return {"error": "Missing username or password"}, 422
+        if User.query.filter_by(username=username).first():
+            return {"error": "Username already exists"}, 409
         if username and password and not User.query.filter_by(username=username).first():
             new_user = User(username=username)
             new_user.password_hash = password

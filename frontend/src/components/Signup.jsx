@@ -1,61 +1,53 @@
+// src/components/Signup.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function Signup() {
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-  });
-
-  const [status, setStatus] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  function handleChange(event) {
-    const { name, value } = event.target;
-    setFormData({ ...formData, [name]: value });
-  }
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
+  async function handleSubmit(e) {
+    e.preventDefault();
     try {
-      const response = await fetch("/api/signup", {
+      const res = await fetch("/backend/signup", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+        credentials: "include"                         // I added
       });
 
-      if (response.ok) {
-        setStatus(true);
-        navigate("/login");
+      if (res.ok) {
+        alert("Signup successful! Please log in.");
+        navigate("/login"); // redirect to login page
       } else {
-        const data = await response.json();
-        alert(`Registration failed: ${data.message}`);
+        const error = await res.json();
+        alert(error.error || "Signup failed");
       }
-    } catch (error) {
-      console.error("Error during registration:", error);
+    } catch (err) {
+      console.error(err);
+      alert("Signup error");
     }
-  };
+  }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="text"
-        name="username"
-        placeholder="Username"
-        value={formData.username}
-        onChange={handleChange}
-      />
-      <input
-        type="password"
-        name="password"
-        placeholder="Password"
-        value={formData.password}
-        onChange={handleChange}
-      />
-      <button type="submit">Sign Up</button>
+    <form onSubmit={handleSubmit} className="p-6">
+      <h2 className="text-xl font-bold mb-4">Sign Up</h2>
+      <div>
+        <label>Username:</label>
+        <input value={username} onChange={(e) => setUsername(e.target.value)} />
+      </div>
+      <div>
+        <label>Password:</label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      </div>
+      <button type="submit" className="mt-2 bg-green-600 text-white px-3 py-1 rounded">
+        Sign Up
+      </button>
     </form>
   );
 }

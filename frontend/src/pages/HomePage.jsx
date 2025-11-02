@@ -9,20 +9,21 @@ function HomePage({ user }) {
   const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  // **Define fetchLists in top-level scope so you can reuse it**
+  async function fetchLists() {
     if (!user) return;
-
-    async function fetchLists() {
-      try {
-        const data = await getLists();
-        setLists(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+    setLoading(true);
+    try {
+      const data = await getLists();
+      setLists(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
+  }
 
+  useEffect(() => {
     fetchLists();
   }, [user]);
 
@@ -37,25 +38,19 @@ function HomePage({ user }) {
     }
   }
 
-  if (!user) {
-    return (
-      <PageTemplate title="Welcome!">
-        <p>Please log in or sign up to access your todo lists.</p>
-      </PageTemplate>
-    );
-  }
+  if (!user) return (
+    <PageTemplate title="Welcome!">
+      <p>Please log in or sign up to access your todo lists.</p>
+    </PageTemplate>
+  );
 
-  // Replace spinner with nothing for now
-  if (loading) return null;
+  if (loading) return <p>Loading...</p>;
 
   return (
-    <PageTemplate
-      title="Your Todo Lists"
-      breadcrumbs={[{ label: "Home", link: "/" }]}
-    >
+    <PageTemplate title="Your Todo Lists">
       <div className="flex gap-4 flex-wrap">
         {lists.map((list) => (
-          <ListCard key={list.id} list={list} />
+          <ListCard key={list.id} list={list} refreshLists={fetchLists} />
         ))}
         <AddButton onClick={handleAddList} label="+ Add List" />
       </div>

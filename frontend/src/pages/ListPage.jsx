@@ -1,83 +1,70 @@
 // src/pages/ListPage.jsx
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import PageTemplate from "./PageTemplate";
 import TaskItem from "../components/TaskItem";
-import AddButton from "../components/AddButton";
-import { getTasks, addTask, getLists } from "../api";
+import AddTaskForm from "../components/AddTaskForm";
+import { getTasks, addTask } from "../api"; // use API wrapper functions
 
 function ListPage({ user }) {
-  const { id } = useParams(); // list id
-  const navigate = useNavigate();
+  const { id } = useParams();
   const [list, setList] = useState(null);
-  const [tasks, setTasks] = useState([]);
+  //const [list, setList] = useState({ id, name: "Loading...", tasks: [] });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  async function fetchList() {
     if (!user) return;
-
-    async function fetchListAndTasks() {
-      try {
-        const lists = await getLists(); // fetch all lists
-        const currentList = lists.find((l) => l.id === parseInt(id));
-        if (!currentList) return navigate("/"); // redirect if list not found
-        setList(currentList);
-        setTasks(currentList.tasks || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchListAndTasks();
-  }, [id, user, navigate]);
-
-  const refreshTasks = async () => {
+    setLoading(true);
     try {
-      const lists = await getLists();
-      const currentList = lists.find((l) => l.id === parseInt(id));
-      setTasks(currentList?.tasks || []);
+        // get the full list object (name + tasks) from backend
+        const res = await fetch(`/backend/lists/${id}`, { credentials: "include" });
+        if (!res.ok) {
+        setList(null); // list not found or unauthorized
+        return;
+        }
+        const data = await res.json();
+        setList(data);
     } catch (err) {
-      console.error(err);
+        console.error("Failed to fetch list:", err);
+        setList(null);
+    } finally {
+        setLoading(false);
     }
-  };
+    }
 
-  async function handleAddTask() {
-    const title = prompt("Enter new task title:");
+  useEffect(() => {
+    fetchList();
+  }, [id, user]);
+
+  async function handleAddTask(title) {
     if (!title) return;
     try {
-      const newTask = await addTask(title, parseInt(id));
-      setTasks((prev) => [...prev, newTask]);
+      const newTask = await addTask(title, id);
+      setList((prev) => ({
+        ...prev,
+        tasks: [...prev.tasks, newTask],
+      }));
     } catch (err) {
-      console.error(err);
+      console.error("Failed to add task:", err);
     }
   }
 
-  if (!user) {
-    return (
-      <PageTemplate title="Unauthorized">
-        <p>Please log in to view this list.</p>
-      </PageTemplate>
-    );
-  }
-
-  if (loading) return <p>Loading...</p>;
+  if (!user) return <p>Please log in to view this list.</p>;
+  if (loading) return <p>Loading list...</p>;
+  if (!list) return <p>List not found.</p>;
 
   return (
-    <PageTemplate
-      title={list?.name || "List"}
-      path={[
-        { label: "Home", link: "/" },
-        { label: list?.name || "List", link: `/lists/${id}` },
-      ]}
-    >
-      <div className="flex flex-col gap-2">
-        {tasks.map((task) => (
-          <TaskItem key={task.id} task={task} refresh={refreshTasks} />
-        ))}
-        <AddButton onClick={handleAddTask} label="+ Add Task" />
-      </div>
+    <PageTemplate title={list.name} breadcrumbs={[{ label: "Home", link: "/" }]}>
+      {list.tasks.length > 0 ? (
+        <div>
+          {list.tasks.map((task) => (
+            <TaskItem key={task.id} task={task} refresh={fetchList} />
+          ))}
+        </div>
+      ) : (
+        <p>This list is empty. Add your first task below!</p>
+      )}
+      <AddTaskForm listId={id} onTaskAdded={handleAddTask} />
     </PageTemplate>
   );
 }

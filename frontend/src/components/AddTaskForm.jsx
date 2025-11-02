@@ -1,32 +1,52 @@
+// src/components/AddTaskForm.jsx
 import { useState } from "react";
 
-function AddTaskForm({ listId, parentId = null, refresh }) {
+function AddTaskForm({ listId, parentId = null, onTaskAdded }) {
   const [title, setTitle] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    fetch("/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, list_id: listId, parent_id: parentId }),
-    }).then((r) => {
-      if (r.ok) {
-        setTitle("");
-        refresh();
+    if (!title.trim()) return;
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/backend/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, list_id: listId, parent_id: parentId }),
+      });
+
+      if (res.ok) {
+        const newTask = await res.json();
+        if (onTaskAdded) onTaskAdded(newTask);
+        setTitle(""); // clear input after adding
+      } else {
+        console.error("Failed to add task", res.status);
       }
-    });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-2">
+    <form onSubmit={handleSubmit} className="mt-2 flex gap-2">
       <input
-        className="border p-1 rounded mr-2 text-sm"
-        placeholder={parentId ? "Add subtask..." : "Add task..."}
+        type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
+        placeholder="New task..."
+        className="border rounded p-1 flex-1"
+        disabled={submitting}
       />
-      <button className="bg-green-500 text-white px-2 py-1 text-sm rounded">
-        +
+      <button
+        type="submit"
+        className="bg-blue-600 text-white px-3 rounded"
+        disabled={submitting}
+      >
+        {submitting ? "Adding..." : "Add"}
       </button>
     </form>
   );
